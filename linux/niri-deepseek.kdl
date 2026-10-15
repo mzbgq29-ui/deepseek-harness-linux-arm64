@@ -1,0 +1,14 @@
+// DeepSeek Harness: Chinese UI / native Wayland / niri tiling.
+window-rule {
+    match app-id=r#"^deepseek-harness$"# title=r#"^DSH(?: |$)"#
+    open-floating false
+    default-column-width { proportion 0.66667; }
+}
+
+// Welcome and account setup stay compact above the workspace.
+window-rule {
+    match app-id=r#"^deepseek-harness$"# title="^DeepSeek Harness$"
+    open-floating true
+    default-column-width { fixed 600; }
+    default-window-height { fixed 600; }
+}

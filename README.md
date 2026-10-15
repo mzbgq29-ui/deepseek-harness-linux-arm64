@@ -1,77 +1,58 @@
-# DeepSeek Harness
+# DeepSeek Harness — Linux ARM64 中文桌面适配版
 
-English | [中文](README.zh.md)
+基于 [DeepSeek 官方源码](https://github.com/deepseek-ai/deepseek-harness) 的非官方 Linux 桌面构建，与 DeepSeek 官方无隶属关系。保留上游 MIT 许可及第三方许可。
 
-DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
+本版基于上游提交 `571902028a75c64c1d767f4ae5fd099485f0ddf0`，发布版本 `0.2.1-alpha.3-linux-arm64-r5`。
 
-It is built on an **everything-is-a-plugin** architecture and powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512).
+## 功能
 
-Documentation: [https://deepseek-harness.github.io/deepseek-harness/](https://deepseek-harness.github.io/deepseek-harness/)
+- 默认简体中文，补齐 Linux 原生编辑、右键和退出菜单文字。
+- 原生 Wayland，启用 text-input-v3 输入法协议。
+- niri 主窗口默认约 2/3 屏宽平铺；欢迎页 600×600 浮动，最小 480×480。
+- 修复 Electron Node 空 WebSocket 心跳导致反复重连。
+- Linux 后端使用随包标准 Node 24.21.0，修复 sharp 读取截图时段错误退出。
+- 用户目录安装，无需 sudo；安装包哈希校验、按内容切换版本、写入 niri 配置前先校验。
 
-## Developer preview
+## 安装
 
-DeepSeek Harness is in _developer preview_ and iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+适用于 **Linux ARM64 / aarch64、glibc、Wayland**。已在 Arch Linux ARM + niri 环境验证；其他发行版兼容性尚未验证。不适用于 x86_64、musl 或 X11。
 
-Review the [safety notice](SAFETY.md) before running the project.
+从本仓库 Releases 下载以下文件，放在同一目录：
 
-## Run
+- `deepseek-harness-0.2.1-alpha.3-linux-arm64.tar.zst`
+- `install-desktop.sh`
+- `SHA256SUMS.txt`
 
-### Run from `npm`
-
-Install `Node.js`, then run:
-
-```sh
-npx @deepseek-ai/dsh web
-```
-
-The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).
-
-### Run from source
-
-To run from a repository checkout:
+需要 Python 3、支持 zstd 的 tar 及 zstd。若使用 niri，需要 `niri` 或 `niri-anland` 命令可用。
 
 ```sh
-git clone https://github.com/deepseek-ai/deepseek-harness.git
-cd deepseek-harness
-pnpm install
-pnpm run build
-pnpm dsh web
+sha256sum -c SHA256SUMS.txt
+sh install-desktop.sh
 ```
 
-`pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
+安装后从应用菜单启动 DeepSeek Harness，或运行 `~/.local/bin/deepseek-harness`。使用自己的 DeepSeek 账号或 API Key；本发行包不包含账号、凭据或会话数据。
 
-## Community and support
+程序安装在 `~/.local/share/deepseek-harness-linux-arm64/`，用户数据默认在 `~/.dsh/`，桌面设置在 `~/.config/DeepSeek Harness/`。使用自定义 XDG 目录时，安装路径随之调整。
 
-- Submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
-- Add the [`dsh-plugin`](https://github.com/topics/dsh-plugin) topic to your plugin repository for discoverability.
-- Join <a href="https://discord.gg/4MrtZUhpxg">DeepSeek Harness Discord community</a>.
+## 更新
 
-## Contributing
+下载新 Release 的安装包及配套安装脚本，重复安装，再退出并重新启动应用。没有配置官方自动更新渠道。安装器保留原版本目录，更新不删除账号和会话数据。
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+## 源码与构建
 
-## Development
+本仓库保留完整上游源码及本地适配修改。依赖与源码构建：
 
-Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md).
-
-`pnpm run dev:web` builds, serves, and rebuilds client bundles on source edits in one terminal, and `make help` lists the matching Make targets for Web and Desktop; the guide's application commands section owns the full table.
-
-For agents, follow [AGENTS.md](AGENTS.md).
-
-## Citation
-
-```bibtex
-@misc{deepseek-harness2026,
-  title={DeepSeek Harness: Everything is a Plugin},
-  author={DeepSeek-AI},
-  year={2026},
-  publisher={GitHub},
-  howpublished={\url{https://github.com/deepseek-ai/deepseek-harness}},
-}
+```sh
+pnpm install --frozen-lockfile
+DSH_GATE_CONCURRENCY=2 pnpm run build
 ```
 
-## License
+Linux 打包说明见 [linux/BUILD.md](linux/BUILD.md)。上游打包脚本仍只正式支持 macOS/Windows；上述构建命令不会自动产出本版 Linux 安装包。
 
-[MIT](LICENSE)
+## 验证与限制
 
-Third-party dependencies and their licenses are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+详见 [验证记录](linux/VALIDATION.zh-CN.txt)。本次验证包含完整构建、针对性回归、真实 ARM64 运行时、截图解码、连接恢复、依赖完整性、安装器和 niri 配置检查。Fcitx 候选窗口未人工验证；付费模型请求和外部插件兼容性未做完整测试。
+
+当前测试内核不支持 Landlock，已验证可用的 Bubblewrap 保持启用。其他系统需自行满足所选沙箱后端的要求。
+
+上游文档见 [UPSTREAM-README.md](UPSTREAM-README.md)。

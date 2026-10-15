@@ -134,7 +134,7 @@ export class DesktopHostFatalError extends Error {
   get diagnostic(): string | undefined { return this.#diagnostic }
 }
 
-/** One Web backend running under the Electron executable in Node mode. */
+/** One Web backend running under the selected packaged Node runtime. */
 export class DesktopHostProcess {
   private child: ChildProcess | undefined
   private readyResolve!: (ready: DesktopHostReady) => void
@@ -155,7 +155,7 @@ export class DesktopHostProcess {
   }>()
 
   /**
-   * @param node - Absolute Electron executable in Node mode.
+   * @param node - Absolute Node executable, or Electron executable in Node mode.
    * @param runtimeDir - Immutable packages carried by the current application.
    * @param projectDir - Desktop plugin profile and child working directory.
    * @param inspectPort - Optional loopback inspector port for workspace development.
@@ -224,9 +224,10 @@ export class DesktopHostProcess {
     })
     child.once('error', (error) => { this.fail(error) })
     this.exitPromise = new Promise<void>((resolve) => {
-      child.once('close', (code) => {
+      child.once('close', (code, signal) => {
         const suffix = this.stderr.trim() === '' ? '' : `: ${this.stderr.trim()}`
-        if (code !== 0 && code !== null) this.fail(new Error(`dsh desktop host exited with ${String(code)}${suffix}`))
+        if (signal !== null) this.fail(new Error(`dsh desktop host terminated by ${signal}${suffix}`))
+        else if (code !== 0 && code !== null) this.fail(new Error(`dsh desktop host exited with ${String(code)}${suffix}`))
         else this.fail(new Error(`dsh desktop host stopped${suffix}`))
         resolve()
       })

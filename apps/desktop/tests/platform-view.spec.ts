@@ -490,3 +490,14 @@ it('keeps an open temporary document when its credential gains a stable identity
   expect(browserSession().partition).toMatch(/^persist:/)
   await manager.dispose()
 })
+
+it('uses the web account identity when the native platform is unsupported', async () => {
+  const { owner } = setup()
+  const manager = new DesktopPlatformView('/bundled/preload.cjs', () => 'zh_CN', null)
+  manager.setSession({ origin: 'https://platform.deepseek.com', userId: 'fixture-user' as AccountUserId, token: 'fixture-secret' })
+  await manager.open(owner, 'usage', bounds)
+  expect(interceptHeaders(1, 'https://platform.deepseek.com/api/balance', {})).toMatchObject({
+    'x-client-platform': 'web', 'x-client-locale': 'zh_CN',
+  })
+  manager.dispose()
+})

@@ -162,6 +162,11 @@ describe('desktop host process', () => {
     expect(failure).toHaveBeenCalledWith(new Error('dsh desktop host exited with 7: plugin crashed'))
   })
 
+  it('reports the termination signal together with preceding warnings', async () => {
+    const runtime = projectWithHost("process.stderr.write('prior warning\\n', () => process.kill(process.pid, 'SIGKILL'))")
+    await expect(hostProcess(runtime).start()).rejects.toThrow('dsh desktop host terminated by SIGKILL: prior warning')
+  })
+
   it('retains only recent diagnostics from a noisy child', async () => {
     const runtime = projectWithHost('process.stderr.write(\'discarded-prefix\' + \'x\'.repeat(70_000) + \'recent-failure\', () => { process.exitCode = 7; process.disconnect() })')
     const failure = await hostProcess(runtime).start().catch((error: unknown) => error)

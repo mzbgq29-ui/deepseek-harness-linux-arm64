@@ -1128,6 +1128,32 @@ describe('desktop main startup', () => {
     expect(harness.windows[0]!.urls).toEqual(['dsh-app://app/'])
   })
 
+  it('runs the packaged Linux Host under its bundled standard Node runtime', async () => {
+    vi.stubGlobal('process', { ...process, platform: 'linux' })
+    harness.app.isPackaged = true
+    await readyForUpdate()
+    expect(harness.hosts[0]!.node).toBe(join('desktop-test-resources', 'runtime', 'primary-runtime', 'dependencies', 'node', 'bin', 'node'))
+  })
+
+  it.each(['en-US', 'zh-CN'])('localizes Linux native editing and quit commands (%s)', async (locale) => {
+    vi.stubGlobal('process', { ...process, platform: 'linux' })
+    vi.spyOn(harness.app, 'getPreferredSystemLanguages').mockReturnValue([locale])
+    await readyForUpdate()
+    const messages = locale === 'zh-CN' ? zh : en
+    const template = harness.menu.mock.calls.map(call => call[0]).find(items => items.some(item => item.role === 'editMenu'))!
+    const edit = template.find(item => item.role === 'editMenu')!
+    expect(edit.label).toBe(messages.edit)
+    const commands = (edit.submenu as MenuItemConstructorOptions[]).filter(item => item.role !== undefined)
+    expect(commands.map(item => [item.role, item.label])).toEqual([
+      ['undo', messages.undo], ['redo', messages.redo], ['cut', messages.cut], ['copy', messages.copy],
+      ['paste', messages.paste], ['delete', messages.delete], ['selectAll', messages.selectAll],
+    ])
+    expect(applicationMenuItems().find(item => item.role === 'quit')!.label).toBe(messages.exitApplication)
+    const window = harness.windows[0]!
+    window.webContents.emit('context-menu', {}, { isEditable: false, selectionText: 'text', editFlags: { canCopy: true } })
+    expect(harness.menu).toHaveBeenLastCalledWith([{ role: 'copy', label: messages.copy, enabled: true, accelerator: '' }])
+  })
+
   it('retains macOS native editing actions on right-click and only copy for selected read-only text', async () => {
     vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin')
     await import('../src/main.ts')

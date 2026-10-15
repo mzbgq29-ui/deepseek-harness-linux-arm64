@@ -50,11 +50,11 @@ const operations = {
 }
 
 describe('desktop welcome window', () => {
-  it.each(['darwin', 'win32', 'linux'] as const)('keeps the %s preview fixed-size and sandboxed', (platform) => {
+  it.each(['darwin', 'win32', 'linux'] as const)('keeps the %s preview within its platform sizing policy and sandboxed', (platform) => {
     const options = welcomeWindowOptions(platform, resolveDesktopLocale('zh-CN'))
     expect(options).toMatchObject({
-      width: 600, height: 700, useContentSize: true, center: true, show: false,
-      resizable: false, maximizable: false, fullscreenable: false,
+      width: 600, height: platform === 'linux' ? 600 : 700, useContentSize: true, center: true, show: false,
+      resizable: platform === 'linux', maximizable: false, fullscreenable: false,
       webPreferences: {
         nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true,
         additionalArguments: ['--dsh-welcome-locale=zh-CN'],
@@ -69,6 +69,7 @@ describe('desktop welcome window', () => {
       expect(options.backgroundMaterial).toBe('acrylic')
       expect(options.titleBarOverlay).toMatchObject({ height: 42 })
     } else {
+      expect(options).toMatchObject({ minWidth: 480, minHeight: 480 })
       expect(options.backgroundColor).toBe('#FFFFFF')
       expect(options.vibrancy).toBeUndefined()
       expect(options.backgroundMaterial).toBeUndefined()

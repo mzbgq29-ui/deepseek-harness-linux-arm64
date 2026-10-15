@@ -152,7 +152,9 @@ interface RuntimeResources {
 
 function runtimeResources(): RuntimeResources {
   const development = !app.isPackaged
-  const node = process.execPath
+  const node = !development && process.platform === 'linux'
+    ? join(process.resourcesPath, 'runtime', 'primary-runtime', 'dependencies', 'node', 'bin', 'node')
+    : process.execPath
   const nodeBin = development ? join(app.getAppPath(), 'scripts', 'node-bin') : join(process.resourcesPath, 'runtime', 'bin')
   const pnpm = (development ? process.env.DSH_DESKTOP_PNPM_ENTRY : undefined)
     ?? (development ? join(app.getAppPath(), 'node_modules', 'pnpm', 'bin', 'pnpm.mjs')
@@ -296,7 +298,7 @@ function createWindow(preload: string, show = false, primary = false): BrowserWi
       const messages = currentDesktopLocale().messages
       Menu.buildFromTemplate(items.map(item => ({
         ...item,
-        ...(process.platform === 'win32' && item.role !== undefined && item.role in messages
+        ...((process.platform === 'win32' || process.platform === 'linux') && item.role !== undefined && item.role in messages
           ? { label: messages[item.role as keyof typeof messages] } : {}),
         accelerator: '',
       }))).popup({ window })
@@ -441,7 +443,7 @@ async function main(): Promise<void> {
     return next.promise
   }
   const platformView = new DesktopPlatformView(join(app.getAppPath(), 'lib', 'preload-platform-account.cjs'),
-    () => locale.id === 'zh-CN' ? 'zh_CN' : 'en_US', process.platform === 'win32' ? 'win32' : 'darwin')
+    () => locale.id === 'zh-CN' ? 'zh_CN' : 'en_US', process.platform === 'win32' ? 'win32' : process.platform === 'darwin' ? 'darwin' : null)
   const backend = new DesktopBackendController((onFailure) => {
     const hostInspectPort = developmentHostInspectPort(development)
     const host = new DesktopHostProcess(resources.node, resources.dsh, activeProject,
@@ -945,7 +947,17 @@ async function main(): Promise<void> {
   const darwin = process.platform === 'darwin'
   const platformMenus = (): MenuItemConstructorOptions[] => darwin
     ? [shortcuts.fileMenu(currentDesktopLocale().messages), { role: 'editMenu' }, { role: 'windowMenu' }]
-    : [{ role: 'editMenu' }]
+    : process.platform === 'linux' ? [{ role: 'editMenu', label: currentDesktopLocale().messages.edit, submenu: [
+      { role: 'undo', label: currentDesktopLocale().messages.undo },
+      { role: 'redo', label: currentDesktopLocale().messages.redo },
+      { type: 'separator' },
+      { role: 'cut', label: currentDesktopLocale().messages.cut },
+      { role: 'copy', label: currentDesktopLocale().messages.copy },
+      { role: 'paste', label: currentDesktopLocale().messages.paste },
+      { role: 'delete', label: currentDesktopLocale().messages.delete },
+      { type: 'separator' },
+      { role: 'selectAll', label: currentDesktopLocale().messages.selectAll },
+    ] }] : [{ role: 'editMenu' }]
   const hideCommands: MenuItemConstructorOptions[] = darwin
     ? [{ role: 'hide', label: currentDesktopLocale().messages.hideApplication },
       { role: 'hideOthers', label: currentDesktopLocale().messages.hideOtherApplications },
@@ -974,7 +986,7 @@ async function main(): Promise<void> {
     { type: 'separator' },
     ...hideCommands,
     { role: 'quit', ...(darwin ? { label: currentDesktopLocale().messages.quitApplication }
-      : process.platform === 'win32' ? { label: currentDesktopLocale().messages.exitApplication } : {}) },
+      : { label: currentDesktopLocale().messages.exitApplication }) },
   ]
   const devToolsItems: MenuItemConstructorOptions[] = [
     { role: 'toggleDevTools', visible: false },

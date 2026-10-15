@@ -1,0 +1,12 @@
+{
+  "upstream": "https://github.com/deepseek-ai/deepseek-harness",
+  "upstreamCommit": "571902028a75c64c1d767f4ae5fd099485f0ddf0",
+  "version": "0.2.1-alpha.3-linux-arm64-r5",
+  "platform": "linux",
+  "arch": "arm64",
+  "electron": "44.7.0",
+  "hostNode": "24.21.0",
+  "locale": "zh-CN",
+  "display": "wayland",
+  "officialRelease": false
+}

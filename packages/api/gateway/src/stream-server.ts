@@ -120,7 +120,8 @@ export class RemoteStreamMuxServer {
           continue
         }
         this.missedHeartbeats.set(socket, missed + 1)
-        socket.ping()
+        // Electron RunAsNode closes the TCP carrier on ws's empty payload write.
+        socket.ping('dsh')
       }
     }, this.heartbeatIntervalMs)
     this.heartbeatTimer.unref()

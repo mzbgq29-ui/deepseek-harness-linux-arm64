@@ -80,6 +80,7 @@ body {
   display: grid;
   flex: 1;
   min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 40px minmax(0, 1fr) 104px;
   justify-items: center;
   align-items: center;
@@ -234,7 +235,8 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 40px;
-  width: 440px;
+  width: min(440px, 100%);
+  min-width: 0;
 }
 
 .key-heading {
@@ -341,3 +343,20 @@ body {
 .actions .welcome-loading { color: inherit; }
 
 .auth-waiting .copy-link:disabled { cursor: default; }
+
+/* Keep account setup usable in narrow niri tiles and short floating windows. */
+@media (max-width: 540px) {
+  .welcome { padding-inline: 16px; }
+  .tagline { white-space: normal; font-size: 20px; line-height: 1.5; }
+}
+
+@media (max-height: 560px) {
+  .welcome {
+    padding-top: 12px;
+    padding-bottom: 52px;
+    grid-template-rows: 32px minmax(0, 1fr) 104px;
+  }
+  .brand { height: 32px; }
+  .key-form { gap: 16px; }
+  .key-heading p { font-size: 14px; line-height: 20px; }
+}

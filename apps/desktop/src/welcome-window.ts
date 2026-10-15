@@ -8,7 +8,7 @@ import type { DesktopLocale } from './locale.ts'
 import { WELCOME_IPC, type WelcomeOperations } from './welcome-api.ts'
 
 /**
- * Resolve the fixed-size welcome window's native material and controls.
+ * Resolve the welcome window's native material, sizing and controls.
  * @param platform - operating system hosting Electron.
  * @param locale - shell-owned localized copy.
  * @returns sandboxed window options with a locale-only preload.
@@ -16,10 +16,11 @@ import { WELCOME_IPC, type WelcomeOperations } from './welcome-api.ts'
 export function welcomeWindowOptions(platform: NodeJS.Platform, locale: DesktopLocale): BrowserWindowConstructorOptions {
   return {
     width: 600,
-    height: 700,
+    height: platform === 'linux' ? 600 : 700,
     useContentSize: true,
     center: true,
-    resizable: false,
+    resizable: platform === 'linux',
+    ...(platform === 'linux' ? { minWidth: 480, minHeight: 480 } : {}),
     maximizable: false,
     fullscreenable: false,
     show: false,
