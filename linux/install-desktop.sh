@@ -19,7 +19,7 @@ home = pathlib.Path.home()
 data = pathlib.Path(os.environ.get('XDG_DATA_HOME', home / '.local/share'))
 config = pathlib.Path(os.environ.get('XDG_CONFIG_HOME', home / '.config'))
 root = data / 'deepseek-harness-linux-arm64'
-version = root / ('0.2.1-alpha.3-5719020-niri-r5-' + digest[:12])
+version = root / ('0.2.1-alpha.3-linux-arm64-r5-' + digest[:12])
 root.mkdir(parents=True, exist_ok=True)
 
 # Publish complete files by rename, preserving the existing file's permissions.

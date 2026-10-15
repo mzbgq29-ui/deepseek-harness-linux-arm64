@@ -1,7 +1,7 @@
 DeepSeek Harness Linux ARM64 本机修复版 r5
 
 源码：deepseek-ai/deepseek-harness
-提交：571902028a75c64c1d767f4ae5fd099485f0ddf0
+上游版本：0.2.1-alpha.3
 
 通过的验证：
 - 最新完整构建和类型检查：9/9

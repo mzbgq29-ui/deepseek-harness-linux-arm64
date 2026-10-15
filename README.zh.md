@@ -1,96 +1,64 @@
-# DeepSeek Harness
+# DeepSeek Harness — Linux ARM64 中文桌面适配版
 
 [English](README.md) | 中文
 
-DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的开源 agent harness（智能体框架）。
+基于 [DeepSeek 官方源码](https://github.com/deepseek-ai/deepseek-harness) 的非官方 Linux 桌面构建，与 DeepSeek 官方无隶属关系。保留上游 MIT 许可及第三方许可。
 
-它构建于**一切皆插件**的架构之上，由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512)。
+本版基于上游版本 `0.2.1-alpha.3`，发布版本 `0.2.1-alpha.3-linux-arm64-r5`。
 
-文档：[https://deepseek-harness.github.io/deepseek-harness/](https://deepseek-harness.github.io/deepseek-harness/)
+## 功能
 
-## 开发者预览
-
-DeepSeek Harness 处于 _开发者预览_ 阶段，正在快速迭代。**未来将出现破坏兼容性的变更。**
-
-运行本项目前，请阅读[安全说明](SAFETY.zh.md)。
+- 默认简体中文，补齐 Linux 原生编辑、右键和退出菜单文字。
+- 原生 Wayland，启用 text-input-v3 输入法协议。
+- niri 主窗口默认约 2/3 屏宽平铺；欢迎页 600×600 浮动，最小 480×480。
+- 修复 Electron Node 空 WebSocket 心跳导致反复重连。
+- Linux 后端使用随包标准 Node 24.21.0，修复 sharp 读取截图时段错误退出。
+- 用户目录安装，无需 sudo；安装包哈希校验、按内容切换版本、写入 niri 配置前先校验。
 
 <a id="run"></a>
 
-## 运行
+## 安装
 
-### 通过 `npm` 运行
+适用于 **Linux ARM64 / aarch64、glibc、Wayland**。已在 Arch Linux ARM + niri 环境验证；其他发行版兼容性尚未验证。不适用于 x86_64、musl 或 X11。
 
-安装 `Node.js`，然后运行：
+从本仓库 Releases 下载以下文件，放在同一目录：
+
+- `deepseek-harness-0.2.1-alpha.3-linux-arm64.tar.zst`
+- `install-desktop.sh`
+- `SHA256SUMS.txt`
+
+需要 Python 3、支持 zstd 的 tar 及 zstd。若使用 niri，需要 `niri` 或 `niri-anland` 命令可用。
 
 ```sh
-npx @deepseek-ai/dsh web
+sha256sum -c SHA256SUMS.txt
+sh install-desktop.sh
 ```
 
-该命令默认会在 `http://127.0.0.1:3080` 启动 Web UI，本机启动时还会用默认浏览器打开页面。通过 SSH 启动时只打印宿主机 URL，因为本地转发地址由 SSH 客户端或编辑器持有。传入 `--no-open` 可仅运行服务器而不打开浏览器。详见 [Web UI 指南](docs/user/guide/index.zh.md)。
+安装后从应用菜单启动 DeepSeek Harness，或运行 `~/.local/bin/deepseek-harness`。使用自己的 DeepSeek 账号或 API Key；本发行包不包含账号、凭据或会话数据。
+
+程序安装在 `~/.local/share/deepseek-harness-linux-arm64/`，用户数据默认在 `~/.dsh/`，桌面设置在 `~/.config/DeepSeek Harness/`。使用自定义 XDG 目录时，安装路径随之调整。
+
+## 更新
+
+下载新 Release 的安装包及配套安装脚本，重复安装，再退出并重新启动应用。没有配置官方自动更新渠道。安装器保留原版本目录，更新不删除账号和会话数据。
 
 <a id="run-from-source"></a>
 
-### 从源码运行
+## 源码与构建
 
-如需从仓库源码运行：
+本仓库保留完整上游源码及本地适配修改。依赖与源码构建：
 
 ```sh
-git clone https://github.com/deepseek-ai/deepseek-harness.git
-cd deepseek-harness
-pnpm install
-pnpm run build
-pnpm dsh web
+pnpm install --frozen-lockfile
+DSH_GATE_CONCURRENCY=2 pnpm run build
 ```
 
-`pnpm run build` 会准备仓库产物。`pnpm dsh web` 会直接使用这些已构建产物，不会重新构建。
+Linux 打包说明见 [linux/BUILD.md](linux/BUILD.md)。上游打包脚本仍只正式支持 macOS/Windows；上述构建命令不会自动产出本版 Linux 安装包。
 
-## 社区与支持
+## 验证与限制
 
-- 通过 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 提交反馈或 bug 报告。
-- 为你的插件仓库添加 [`dsh-plugin`](https://github.com/topics/dsh-plugin) 话题，便于被发现。
-- 欢迎加入 DeepSeek Harness 企微群！扫描下方二维码填写入群问卷，小助手会定期发送入群邀请。
+详见 [验证记录](linux/VALIDATION.zh-CN.txt)。本次验证包含完整构建、针对性回归、真实 ARM64 运行时、截图解码、连接恢复、依赖完整性、安装器和 niri 配置检查。Fcitx 候选窗口未人工验证；付费模型请求和外部插件兼容性未做完整测试。
 
-<table>
-  <thead>
-    <tr>
-      <th align="center">入群问卷</th>
-      <th align="center">微信公众号</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center"><a href="https://trtgsjkv6r.feishu.cn/share/base/form/shrcnIt5twSVdLGD52KJBckGCgg"><img src="https://cdn.deepseek.com/harness/readme/community-wecom-survey.png" alt="DeepSeek Harness 入群问卷二维码" width="180" height="180"></a></td>
-      <td align="center"><img src="https://cdn.deepseek.com/harness/readme/community-wechat-official-account.png" alt="DeepSeek Harness 团队微信公众号二维码" width="180" height="180"></td>
-    </tr>
-  </tbody>
-</table>
+当前测试内核不支持 Landlock，已验证可用的 Bubblewrap 保持启用。其他系统需自行满足所选沙箱后端的要求。
 
-## 参与贡献
-
-参见 [CONTRIBUTING.md](CONTRIBUTING.zh.md)。
-
-## 开发
-
-请先阅读[开发指南](docs/development.zh.md)与[架构文档](docs/architecture.zh.md)。
-
-`pnpm run dev:web` 会在一个终端里完成构建、启动，并在源码修改时重建 client bundle；`make help` 列出 Web 与 Desktop 对应的 Make target。完整表格见开发指南的「应用命令」一节。
-
-面向 agent：请遵循 [AGENTS.md](AGENTS.md)。
-
-## 引用
-
-```bibtex
-@misc{deepseek-harness2026,
-  title={DeepSeek Harness: Everything is a Plugin},
-  author={DeepSeek-AI},
-  year={2026},
-  publisher={GitHub},
-  howpublished={\url{https://github.com/deepseek-ai/deepseek-harness}},
-}
-```
-
-## 许可证
-
-[MIT](LICENSE)
-
-第三方依赖及其许可证见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+上游文档见 [UPSTREAM-README.md](UPSTREAM-README.md)。
